@@ -15,12 +15,13 @@
 
 #define SOLAR_PANEL_ROD_BUTTON 3
 #define MAGNETS_BUTTON 4
+#define PUSHER_BUTTON 5
 
 TM1637Display scoreDisplay(12, 13); // CLK, DIO
 
 RF24 radio(9, 53); // CE, CSN
 
-struct JoystickData {
+typedef struct JoystickData {
   // Classic joystick
   byte x;
   byte y;
@@ -28,9 +29,9 @@ struct JoystickData {
   // Holonom joystick
   byte holonomX;
   byte holonomY;
-};
+}JoystickData;
 
-struct InputData {
+typedef struct InputData {
   struct JoystickData joystickData;
   
   byte grabberHeight;
@@ -40,7 +41,8 @@ struct InputData {
 
   bool areMagnetsEnabled;
   bool isRodDeployed;
-};
+  bool isPusherDeployed;
+}InputData;
 
 struct InputData lastInputData;
 
@@ -59,6 +61,7 @@ void setup() {
 
     pinMode(SOLAR_PANEL_ROD_BUTTON, INPUT_PULLUP);
     pinMode(MAGNETS_BUTTON, INPUT_PULLUP);
+    pinMode(PUSHER_BUTTON, INPUT_PULLUP);
   };
 
   auto setupScoreDisplay = []() {
@@ -92,10 +95,7 @@ void setup() {
 }
 
 void loop() {
-  struct InputData inputData;
-  struct JoystickData joystickData;
-
-  inputData.joystickData = joystickData;
+  InputData inputData;
 
   getInputsData(&inputData);
   sendData(&inputData);
@@ -105,6 +105,15 @@ void loop() {
 }
 
 void getInputsData(struct InputData *inputData) {
+  JoystickData joystickData;
+
+  joystickData.x = analogRead(JOYSTICK_X_AXIS_PIN);
+  joystickData.y = analogRead(JOYSTICK_Y_AXIS_PIN);
+  joystickData.holonomX = analogRead(HOLONOM_JOYSTICK_X_AXIS_PIN);
+  joystickData.holonomY = analogRead(HOLONOM_JOYSTICK_Y_AXIS_PIN);
+
+  inputData->joystickData = joystickData;
+  
   inputData->grabberHeight = analogRead(GRABBER_HEIGHT_POTENTIOMETER);
   inputData->grabberOpeningAngle = analogRead(GRABBER_OPENING_POTENTIOMETER);
   
@@ -112,11 +121,7 @@ void getInputsData(struct InputData *inputData) {
 
   inputData->isRodDeployed = digitalRead(SOLAR_PANEL_ROD_BUTTON);
   inputData->areMagnetsEnabled = digitalRead(MAGNETS_BUTTON);
-
-  inputData->joystickData.x = analogRead(JOYSTICK_X_AXIS_PIN);
-  inputData->joystickData.y = analogRead(JOYSTICK_Y_AXIS_PIN);
-  inputData->joystickData.holonomX = analogRead(HOLONOM_JOYSTICK_X_AXIS_PIN);
-  inputData->joystickData.holonomY = analogRead(HOLONOM_JOYSTICK_Y_AXIS_PIN);
+  inputData->isPusherDeployed = digitalRead(PUSHER_BUTTON);
 }
 
 void sendData(struct InputData *inputData) {
@@ -145,6 +150,11 @@ void sendData(struct InputData *inputData) {
     
     radio.write(&code, sizeof(code));
     radio.write(&(inputData->grabberOpeningAngle), sizeof(inputData->grabberOpeningAngle));
+  } else if (lastInputData.isPusherDeployed != inputData->isPusherDeployed) {
+    code = 'P';
+    
+    radio.write(&code, sizeof(code));
+    radio.write(&(inputData->isPusherDeployed), sizeof(inputData->isPusherDeployed));
   }
 
   // TODO : Add score
