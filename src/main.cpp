@@ -15,7 +15,8 @@
 
 #define SOLAR_PANEL_ROD_BUTTON 3
 #define MAGNETS_BUTTON 4
-#define PUSHER_BUTTON 5
+#define LEFT_PUSHER_BUTTON 5
+#define RIGH_PUSHER_BUTTON 6
 
 TM1637Display scoreDisplay(12, 13); // CLK, DIO
 
@@ -31,7 +32,7 @@ typedef struct JoystickData {
   byte holonomY;
 }JoystickData;
 
-typedef struct InputData {
+typedef struct RadioData {
   struct JoystickData joystickData;
   
   byte grabberHeight;
@@ -41,13 +42,13 @@ typedef struct InputData {
 
   bool areMagnetsEnabled;
   bool isRodDeployed;
-  bool isPusherDeployed;
-}InputData;
+  bool isRightPusherDeployed;
+  bool isLeftPusherDeployed;
+}RadioData;
 
-struct InputData lastInputData;
-
-void getInputsData(struct InputData *inputData);
-void sendData(struct InputData *inputData);
+void displayScore(byte score);
+void getInputsData(struct RadioData *dataToSend);
+void sendData(struct RadioData *dataToSend);
 
 void setup() {
   auto setupInputs = []() {
@@ -61,7 +62,7 @@ void setup() {
 
     pinMode(SOLAR_PANEL_ROD_BUTTON, INPUT_PULLUP);
     pinMode(MAGNETS_BUTTON, INPUT_PULLUP);
-    pinMode(PUSHER_BUTTON, INPUT_PULLUP);
+    pinMode(RIGH_PUSHER_BUTTON, INPUT_PULLUP);
   };
 
   auto setupScoreDisplay = []() {
@@ -95,16 +96,16 @@ void setup() {
 }
 
 void loop() {
-  InputData inputData;
+  RadioData dataToSend;
 
-  getInputsData(&inputData);
-  sendData(&inputData);
-  //displayScore();
+  getInputsData(&dataToSend);
+  displayScore(dataToSend.score);
+  sendData(&dataToSend);
 
-  lastInputData = inputData;
+  delay(100); // Delay of 100ms to avoid spamming the radio
 }
 
-void getInputsData(struct InputData *inputData) {
+void getInputsData(struct RadioData *dataToSend) {
   JoystickData joystickData;
 
   joystickData.x = analogRead(JOYSTICK_X_AXIS_PIN);
@@ -112,50 +113,23 @@ void getInputsData(struct InputData *inputData) {
   joystickData.holonomX = analogRead(HOLONOM_JOYSTICK_X_AXIS_PIN);
   joystickData.holonomY = analogRead(HOLONOM_JOYSTICK_Y_AXIS_PIN);
 
-  inputData->joystickData = joystickData;
+  dataToSend->joystickData = joystickData;
   
-  inputData->grabberHeight = analogRead(GRABBER_HEIGHT_POTENTIOMETER);
-  inputData->grabberOpeningAngle = analogRead(GRABBER_OPENING_POTENTIOMETER);
+  dataToSend->grabberHeight = analogRead(GRABBER_HEIGHT_POTENTIOMETER);
+  dataToSend->grabberOpeningAngle = analogRead(GRABBER_OPENING_POTENTIOMETER);
   
-  inputData->score = DEFAULT_SCORE; // TODO: Get score from the score board
+  dataToSend->score = DEFAULT_SCORE; // TODO: Get score from the score board
 
-  inputData->isRodDeployed = digitalRead(SOLAR_PANEL_ROD_BUTTON);
-  inputData->areMagnetsEnabled = digitalRead(MAGNETS_BUTTON);
-  inputData->isPusherDeployed = digitalRead(PUSHER_BUTTON);
+  dataToSend->isRodDeployed = digitalRead(SOLAR_PANEL_ROD_BUTTON);
+  dataToSend->areMagnetsEnabled = digitalRead(MAGNETS_BUTTON);
+  dataToSend->isRightPusherDeployed = digitalRead(RIGH_PUSHER_BUTTON);
+  dataToSend->isLeftPusherDeployed = digitalRead(LEFT_PUSHER_BUTTON);
 }
 
-void sendData(struct InputData *inputData) {
-  char code = 'J';
+void displayScore(byte score) {
+  scoreDisplay.showNumberDec(score);
+}
 
-  radio.write(&code, sizeof(code));
-  radio.write(&(inputData->joystickData), sizeof(inputData->joystickData));
-
-  if (lastInputData.areMagnetsEnabled != inputData->areMagnetsEnabled) {
-    code = 'M';
-    
-    radio.write(&code, sizeof(code));
-    radio.write(&(inputData->areMagnetsEnabled), sizeof(inputData->areMagnetsEnabled));
-  } else if (lastInputData.isRodDeployed != inputData->isRodDeployed) {
-    code = 'R';
-    
-    radio.write(&code, sizeof(code));
-    radio.write(&(inputData->isRodDeployed), sizeof(inputData->isRodDeployed));
-  } else if (lastInputData.grabberHeight != inputData->grabberHeight) {
-    code = 'H';
-    
-    radio.write(&code, sizeof(code));
-    radio.write(&(inputData->grabberHeight), sizeof(inputData->grabberHeight));
-  } else if (lastInputData.grabberOpeningAngle != inputData->grabberOpeningAngle) {
-    code = 'O';
-    
-    radio.write(&code, sizeof(code));
-    radio.write(&(inputData->grabberOpeningAngle), sizeof(inputData->grabberOpeningAngle));
-  } else if (lastInputData.isPusherDeployed != inputData->isPusherDeployed) {
-    code = 'P';
-    
-    radio.write(&code, sizeof(code));
-    radio.write(&(inputData->isPusherDeployed), sizeof(inputData->isPusherDeployed));
-  }
-
-  // TODO : Add score
+void sendData(struct RadioData *dataToSend) {
+  radio.write(&dataToSend, sizeof(dataToSend));
 }
