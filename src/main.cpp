@@ -3,7 +3,7 @@
 #include <RF24.h>
 #include <TM1637Display.h>
 
-#define DEFAULT_SCORE 50
+#define DEFAULT_SCORE 90
 
 #define JOYSTICK_X_AXIS_PIN A1
 #define JOYSTICK_Y_AXIS_PIN A2
@@ -20,7 +20,7 @@
 
 TM1637Display scoreDisplay(12, 13); // CLK, DIO
 
-RF24 radio(9, 53); // CE, CSN
+RF24 radio(7, 8); // CE, CSN
 
 typedef struct JoystickData {
   // Classic joystick
@@ -108,22 +108,22 @@ void loop() {
 void getInputsData(struct RadioData *dataToSend) {
   JoystickData joystickData;
 
-  joystickData.x = analogRead(JOYSTICK_X_AXIS_PIN);
-  joystickData.y = analogRead(JOYSTICK_Y_AXIS_PIN);
-  joystickData.holonomX = analogRead(HOLONOM_JOYSTICK_X_AXIS_PIN);
-  joystickData.holonomY = analogRead(HOLONOM_JOYSTICK_Y_AXIS_PIN);
+  joystickData.x = 1;
+  joystickData.y = 1;
+  joystickData.holonomX = 1;
+  joystickData.holonomY = 1;
 
   dataToSend->joystickData = joystickData;
   
-  dataToSend->grabberHeight = analogRead(GRABBER_HEIGHT_POTENTIOMETER);
-  dataToSend->grabberOpeningAngle = analogRead(GRABBER_OPENING_POTENTIOMETER);
+  dataToSend->grabberHeight = 1;
+  dataToSend->grabberOpeningAngle = 1;
   
   dataToSend->score = DEFAULT_SCORE; // TODO: Get score from the score board
 
-  dataToSend->isRodDeployed = digitalRead(SOLAR_PANEL_ROD_BUTTON);
-  dataToSend->areMagnetsEnabled = digitalRead(MAGNETS_BUTTON);
-  dataToSend->isRightPusherDeployed = digitalRead(RIGH_PUSHER_BUTTON);
-  dataToSend->isLeftPusherDeployed = digitalRead(LEFT_PUSHER_BUTTON);
+  dataToSend->isRodDeployed = 1;
+  dataToSend->areMagnetsEnabled = 1;
+  dataToSend->isRightPusherDeployed = 1;
+  dataToSend->isLeftPusherDeployed = 1;
 }
 
 void displayScore(byte score) {
@@ -131,5 +131,5 @@ void displayScore(byte score) {
 }
 
 void sendData(struct RadioData *dataToSend) {
-  radio.write(&dataToSend, sizeof(dataToSend));
+  radio.write(dataToSend, sizeof(*dataToSend));
 }
