@@ -63,6 +63,7 @@ void setup() {
     pinMode(SOLAR_PANEL_ROD_BUTTON, INPUT_PULLUP);
     pinMode(MAGNETS_BUTTON, INPUT_PULLUP);
     pinMode(RIGH_PUSHER_BUTTON, INPUT_PULLUP);
+    pinMode(LEFT_PUSHER_BUTTON, INPUT_PULLUP);
   };
 
   auto setupScoreDisplay = []() {
