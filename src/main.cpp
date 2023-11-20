@@ -2,6 +2,7 @@
 #include <SPI.h>
 #include <RF24.h>
 #include <TM1637Display.h>
+//#include <Joystick.h>
 
 #define DEFAULT_SCORE 90
 
@@ -17,9 +18,11 @@
 #define MAGNETS_BUTTON 4
 #define LEFT_PUSHER_BUTTON 5
 #define RIGH_PUSHER_BUTTON 6
+#define SEND_DATA_BUTTON 7
 
 TM1637Display scoreDisplay(12, 13); // CLK, DIO
-
+// Joystick classicJoystick(A1, A2);
+// Joystick holonomJoystick(A3, A4);
 RF24 radio(7, 8); // CE, CSN
 
 typedef struct JoystickData {
@@ -49,6 +52,7 @@ typedef struct RadioData {
 void displayScore(byte score);
 void getInputsData(struct RadioData *dataToSend);
 void sendData(struct RadioData *dataToSend);
+bool canSendData():
 
 void setup() {
   auto setupInputs = []() {
@@ -106,6 +110,10 @@ void loop() {
   delay(100); // Delay of 100ms to avoid spamming the radio
 }
 
+bool canSendData() {
+  return (digitalRead(SEND_DATA_BUTTON) == true);
+}
+
 void getInputsData(struct RadioData *dataToSend) {
   JoystickData joystickData;
 
@@ -116,15 +124,15 @@ void getInputsData(struct RadioData *dataToSend) {
 
   dataToSend->joystickData = joystickData;
   
-  dataToSend->grabberHeight = 1;
-  dataToSend->grabberOpeningAngle = 1;
+  dataToSend->grabberHeight = digitalRead(GRABBER_HEIGHT_POTENTIOMETER);
+  dataToSend->grabberOpeningAngle = digitalRead(GRABBER_OPENING_POTENTIOMETER);
   
   dataToSend->score = DEFAULT_SCORE; // TODO: Get score from the score board
 
-  dataToSend->isRodDeployed = 1;
-  dataToSend->areMagnetsEnabled = 1;
-  dataToSend->isRightPusherDeployed = 1;
-  dataToSend->isLeftPusherDeployed = 1;
+  dataToSend->isRodDeployed = digitalRead(SOLAR_PANEL_ROD_BUTTON);
+  dataToSend->areMagnetsEnabled = digitalRead(MAGNETS_BUTTON);
+  dataToSend->isRightPusherDeployed = digitalRead(RIGH_PUSHER_BUTTON);
+  dataToSend->isLeftPusherDeployed = digitalRead(LEFT_PUSHER_BUTTON);
 }
 
 void displayScore(byte score) {
