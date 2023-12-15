@@ -2,9 +2,11 @@
 #include <SPI.h>
 #include <RF24.h>
 #include <TM1637Display.h>
-//#include <Joystick.h>
+#include <Encoder.h>
 
-#define DEFAULT_SCORE 90
+#define SCORE_STEP 5
+#define MIN_SCORE 20
+#define MAX_SCORE 200
 
 #define JOYSTICK_X_AXIS_PIN A1
 #define JOYSTICK_Y_AXIS_PIN A2
@@ -21,9 +23,8 @@
 #define SEND_DATA_BUTTON 7
 
 TM1637Display scoreDisplay(12, 13); // CLK, DIO
-// Joystick classicJoystick(A1, A2);
-// Joystick holonomJoystick(A3, A4);
 RF24 radio(7, 8); // CE, CSN
+Encoder scoreEncoder(18, 19); // CLK, DT (DT must be an interrupt pin)
 
 typedef struct JoystickData {
   // Classic joystick
@@ -33,7 +34,7 @@ typedef struct JoystickData {
   // Holonom joystick
   byte holonomX;
   byte holonomY;
-}JoystickData;
+} JoystickData;
 
 typedef struct RadioData {
   struct JoystickData joystickData;
@@ -47,12 +48,14 @@ typedef struct RadioData {
   bool isRodDeployed;
   bool isRightPusherDeployed;
   bool isLeftPusherDeployed;
-}RadioData;
+} RadioData;
 
-void displayScore(byte score);
-void getInputsData(struct RadioData *dataToSend);
-void sendData(struct RadioData *dataToSend);
-bool canSendData():
+byte score = 90; // DEFAULT
+
+void getInputsData(RadioData *dataToSend);
+void sendData(RadioData *dataToSend);
+void updateScore();
+bool canSendData();
 
 void setup() {
   auto setupInputs = []() {
@@ -72,7 +75,7 @@ void setup() {
 
   auto setupScoreDisplay = []() {
     scoreDisplay.setBrightness(0x0f);
-    scoreDisplay.showNumberDec(DEFAULT_SCORE);
+    scoreDisplay.showNumberDec(score);
   };
 
   auto setupRadio = []() {
@@ -103,11 +106,16 @@ void setup() {
 void loop() {
   RadioData dataToSend;
 
-  getInputsData(&dataToSend);
-  displayScore(dataToSend.score);
-  sendData(&dataToSend);
+  delay(20); // Delay of 20ms to avoid spamming the radio
 
-  delay(100); // Delay of 100ms to avoid spamming the radio
+  if (!canSendData()) {
+    return;
+  }
+
+  getInputsData(&dataToSend);
+  updateScore();
+  dataToSend.score = score;
+  sendData(&dataToSend);
 }
 
 bool canSendData() {
@@ -117,17 +125,15 @@ bool canSendData() {
 void getInputsData(struct RadioData *dataToSend) {
   JoystickData joystickData;
 
-  joystickData.x = 1;
-  joystickData.y = 1;
-  joystickData.holonomX = 1;
-  joystickData.holonomY = 1;
+  joystickData.x = map(analogRead(JOYSTICK_X_AXIS_PIN), 0, 1023, 0, 255);
+  joystickData.y = map(analogRead(JOYSTICK_Y_AXIS_PIN), 0, 1023, 0, 255);
+  joystickData.holonomX = map(analogRead(HOLONOM_JOYSTICK_X_AXIS_PIN), 0, 1023, 0, 255);
+  joystickData.holonomY = map(analogRead(HOLONOM_JOYSTICK_Y_AXIS_PIN), 0, 1023, 0, 255);
 
   dataToSend->joystickData = joystickData;
   
-  dataToSend->grabberHeight = digitalRead(GRABBER_HEIGHT_POTENTIOMETER);
-  dataToSend->grabberOpeningAngle = digitalRead(GRABBER_OPENING_POTENTIOMETER);
-  
-  dataToSend->score = DEFAULT_SCORE; // TODO: Get score from the score board
+  dataToSend->grabberHeight = map(analogRead(GRABBER_HEIGHT_POTENTIOMETER), 0, 1023, 0, 255);
+  dataToSend->grabberOpeningAngle = map(analogRead(GRABBER_OPENING_POTENTIOMETER), 0, 1023, 0, 255);
 
   dataToSend->isRodDeployed = digitalRead(SOLAR_PANEL_ROD_BUTTON);
   dataToSend->areMagnetsEnabled = digitalRead(MAGNETS_BUTTON);
@@ -135,7 +141,11 @@ void getInputsData(struct RadioData *dataToSend) {
   dataToSend->isLeftPusherDeployed = digitalRead(LEFT_PUSHER_BUTTON);
 }
 
-void displayScore(byte score) {
+void updateScore() {
+  byte lastScore = score;
+  score += constrain(scoreEncoder.readAndReset() * SCORE_STEP, MIN_SCORE, MAX_SCORE);
+
+  if (lastScore == score) return;
   scoreDisplay.showNumberDec(score);
 }
 
