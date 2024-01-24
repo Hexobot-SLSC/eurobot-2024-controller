@@ -3,6 +3,33 @@
 #include <RF24.h>
 #include <TM1637Display.h>
 #include <Encoder.h>
+#include <printf.h>
+
+// USER DEFINED //
+
+/* Define wether to enable info logs or not. Add // before #define to disable. */
+#define INFO_STATE
+
+/* Define wether to enable debug logs or not. Add // before #define to disable. */
+#define DEBUG_STATE
+
+// END USER DEFINED //
+
+#ifdef INFO_STATE
+#define log(msg) \
+Serial.print("[INFO] : "); \
+Serial.println(msg);
+#else
+#define log(msg)
+#endif
+
+#ifdef DEBUG_STATE
+#define debug(msg) \
+Serial.print("[DEBUG] : "); \
+Serial.println(msg);
+#else
+#define debug(msg)
+#endif
 
 #define SCORE_STEP 5
 #define MIN_SCORE 20
@@ -16,15 +43,15 @@
 #define GRABBER_HEIGHT_POTENTIOMETER A5
 #define GRABBER_OPENING_POTENTIOMETER A6
 
-#define SOLAR_PANEL_ROD_BUTTON 3
-#define MAGNETS_BUTTON 4
+#define SOLAR_PANEL_ROD_BUTTON 99
+#define MAGNETS_BUTTON 99
 #define LEFT_PUSHER_BUTTON 5
-#define RIGH_PUSHER_BUTTON 6
-#define SEND_DATA_BUTTON 7
+#define RIGH_PUSHER_BUTTON 9
+#define SEND_DATA_BUTTON 6
 
-TM1637Display scoreDisplay(12, 13); // CLK, DIO
-RF24 radio(7, 8); // CE, CSN
-Encoder scoreEncoder(18, 19); // CLK, DT (DT must be an interrupt pin)
+TM1637Display scoreDisplay(22, 23); // CLK, DIO
+RF24 radio(3, 4); // CE, CSN
+Encoder scoreEncoder(13, 13); // CLK, DT (DT must be an interrupt pin)
 
 typedef struct JoystickData {
   // Classic joystick
@@ -71,6 +98,7 @@ void setup() {
     pinMode(MAGNETS_BUTTON, INPUT_PULLUP);
     pinMode(RIGH_PUSHER_BUTTON, INPUT_PULLUP);
     pinMode(LEFT_PUSHER_BUTTON, INPUT_PULLUP);
+    pinMode(SEND_DATA_BUTTON, INPUT_PULLUP);
   };
 
   auto setupScoreDisplay = []() {
@@ -88,19 +116,27 @@ void setup() {
   };
 
   Serial.begin(9600);
+  printf_begin();
 
-  Serial.println("Setup in progress...");
+  log("Setup in progress...");
 
   setupInputs();
-  Serial.println("Inputs setup completed");
+  debug("Inputs setup completed");
 
   setupScoreDisplay();
-  Serial.println("Score display setup completed");
+  debug("Score display setup completed");
 
   setupRadio();
-  Serial.println("Radio setup completed");
+  debug("Radio setup completed");
 
-  Serial.println("Controller ready!");
+  log("Setup completed !")
+
+  #ifdef DEBUG_STATE
+  debug("Radio details :")
+  radio.printDetails();
+  #endif
+
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
