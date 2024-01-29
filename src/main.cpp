@@ -1,10 +1,7 @@
 #include <Arduino.h>
-#include <SPI.h>
-#include <RF24.h>
-#include <TM1637Display.h>
-#include <Encoder.h>
 #include <printf.h>
 #include <Logging.h>
+#include <Encoder.h>
 #include <Inputs.h>
 #include <Remote.h>
 #include <ScoreDisplay.h>
