@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <Config.h>
 
 #ifndef __LOGGING_H__
 #define __LOGGING_H__
