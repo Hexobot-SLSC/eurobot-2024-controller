@@ -48,7 +48,7 @@ void setup() {
 void loop() {
   RadioData dataToSend;
 
-  delay(HEARTBEAT_DELAY); // Delay of 20ms to avoid spamming the radio
+  delay(HEARTBEAT_DELAY);
 
   byte newScore = getNewScore();
   if (score != newScore) {
@@ -60,8 +60,10 @@ void loop() {
     return;
   }
 
+
   inputs.fetch(&dataToSend);
-  dataToSend.score = newScore;
+
+  //dataToSend.score = newScore;
 
   remote.send(&dataToSend);
 }

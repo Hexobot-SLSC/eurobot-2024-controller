@@ -7,7 +7,7 @@
 struct JoystickData {
   // Classic joystick
   byte x;
-  byte y;
+  //byte y;
 
   // Holonom joystick
   byte holonomX;
@@ -17,13 +17,13 @@ struct JoystickData {
 struct RadioData {
   JoystickData joystickData;
   
-  byte grabberHeight;
-  byte grabberOpeningAngle;
+  // short grabberHeight;
+  // short grabberOpeningAngle;
 
-  byte score;
+  // short score;
 
-  bool areMagnetsEnabled;
-  bool isRodDeployed;
+  // bool areMagnetsEnabled;
+  // bool isRodDeployed;
   bool isRightPusherDeployed;
   bool isLeftPusherDeployed;
 };

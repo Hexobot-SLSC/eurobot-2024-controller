@@ -37,7 +37,7 @@ Making the delay too low will make the robot consume too much power and
 risks devices damages and power supply issues.
 ----------------------------------------------------------------
 Cannot disable. */
-#define HEARTBEAT_DELAY 30
+#define HEARTBEAT_DELAY 100
 
 // END USER DEFINED //
 
