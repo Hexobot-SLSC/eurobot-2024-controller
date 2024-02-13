@@ -8,8 +8,8 @@
 /* Define wether to enable info logs or not. */
 #define INFO_STATE
 
-/* Define wether to enable debug logs or not. */
-#define DEBUG_STATE
+/* Define wether to enable debug logs or not. Impact performances when enabled */
+//#define DEBUG_STATE
 
 /* The default score to display on the robot.
 Cannot disable. */
@@ -37,7 +37,7 @@ Making the delay too low will make the robot consume too much power and
 risks devices damages and power supply issues.
 ----------------------------------------------------------------
 Cannot disable. */
-#define HEARTBEAT_DELAY 100
+#define HEARTBEAT_DELAY 200
 
 // END USER DEFINED //
 
