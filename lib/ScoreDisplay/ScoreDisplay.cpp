@@ -1,13 +1,13 @@
 #include <Arduino.h>
 #include <ScoreDisplay.h>
 #include <TM1637Display.h>
+#include <Config.h>
 
-ScoreDisplay::ScoreDisplay(): display(10, 11) {};
+ScoreDisplay::ScoreDisplay(): display(DISPLAY_CLK, DISPLAY_DIO) {};
 
-void ScoreDisplay::setup() {
-    const uint8_t middleBar[1] = {SEG_G};
+void ScoreDisplay::setup(byte score) {
     display.setBrightness(0x0f);
-    display.setSegments(middleBar, 4, 0);
+    display.showNumberDec(score, false);
 }
 
 void ScoreDisplay::update(byte score) {

@@ -5,12 +5,13 @@
 #include <Logging.h>
 #include <EasyButton.h>
 #include <BetterJoystick.h>
+#include <Config.h>
 
 EasyButton rightPusherButton(RIGH_PUSHER_BUTTON);
 EasyButton leftPusherButton(LEFT_PUSHER_BUTTON);
 
-Joystick joystick(JOYSTICK_X_AXIS_PIN, NOT_A_PIN, NOT_A_PIN);
-Joystick holonomJoystick(HOLONOM_JOYSTICK_X_AXIS_PIN, HOLONOM_JOYSTICK_Y_AXIS_PIN, NOT_A_PIN);
+Joystick joystick(CLASSIC_JOYSTICK_X_AXIS, NOT_A_PIN, NOT_A_PIN);
+Joystick holonomJoystick(HOLONOM_JOYSTICK_X_AXIS, HOLONOM_JOYSTICK_Y_AXIS, NOT_A_PIN);
 
 Inputs::Inputs() {};
 
@@ -25,7 +26,7 @@ void Inputs::setup() {
 }
 
 void Inputs::fetch(RadioData *dataBuffer) {
-    dataBuffer->joystickData.x = 255 - map(
+    dataBuffer->joystickData.x = map(
         joystick.x(JOYSTICK_X_AXIS_ZONE_MIN, JOYSTICK_X_AXIS_ZONE_MAX),
         JOYSTICK_X_AXIS_ZONE_MIN,
         JOYSTICK_X_AXIS_ZONE_MAX,
@@ -49,15 +50,10 @@ void Inputs::fetch(RadioData *dataBuffer) {
         255
     );
 
-    debug(String("Joystick X: ") + String(dataBuffer->joystickData.x));
-    debug(String("Holonom Joystick X: ") + String(dataBuffer->joystickData.holonomX));
-    debug(String("Holonom Joystick Y: ") + String(dataBuffer->joystickData.holonomY));
+    
 
-    // dataBuffer->grabberHeight = analogRead(GRABBER_HEIGHT_POTENTIOMETER);
-    // dataBuffer->grabberOpeningAngle = analogRead(GRABBER_OPENING_POTENTIOMETER);
-
-    // dataBuffer->isRodDeployed = digitalRead(SOLAR_PANEL_ROD_BUTTON);
-    // dataBuffer->areMagnetsEnabled = digitalRead(MAGNETS_BUTTON);
+    dataBuffer->grabberHeight = map(1024 - analogRead(GRABBER_HEIGHT_POTENTIOMETER), 0, 1024, 0, 255);
+    dataBuffer->grabberOpeningAngle = map(1024 - analogRead(GRABBER_OPENING_POTENTIOMETER), 0, 1024, 0, 255);
     dataBuffer->isRightPusherDeployed = rightPusherButton.read();
     dataBuffer->isLeftPusherDeployed = leftPusherButton.read();
 }

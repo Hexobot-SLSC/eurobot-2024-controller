@@ -7,18 +7,15 @@
 #include <Remote.h>
 #include <ScoreDisplay.h>
 
-#define SEND_DATA_BUTTON 6
-
 Inputs inputs;
 Remote remote;
 ScoreDisplay scoreDisplay;
-Encoder scoreEncoder(13, 13); // CLK, DT (DT must be an interrupt pin)
+Encoder scoreEncoder(SCORE_ENCODER_CLK, SCORE_ENCODER_DT); // CLK, DT (DT must be an interrupt pin)
 
 byte score = DEFAULT_SCORE; // DEFAULT
 byte lastScore;
 
 byte getNewScore();
-bool canSendData();
 
 void setup() {
 
@@ -27,11 +24,10 @@ void setup() {
 
   log("Setup in progress...");
 
-  pinMode(SEND_DATA_BUTTON, INPUT_PULLUP);
   inputs.setup();  
   debug("Inputs setup completed");
 
-  scoreDisplay.setup();
+  scoreDisplay.setup(score);
   debug("Score display setup completed");
 
   remote.setup();
@@ -56,22 +52,15 @@ void loop() {
     scoreDisplay.update(score);
   }
 
-  if (!canSendData()) {
-    return;
-  }
-
 
   inputs.fetch(&dataToSend);
 
-  //dataToSend.score = newScore;
+  dataToSend.score = newScore;
 
   remote.send(&dataToSend);
 }
 
-bool canSendData() {
-  return (digitalRead(SEND_DATA_BUTTON) == true);
-}
-
 byte getNewScore() {
-  return score + constrain(scoreEncoder.readAndReset() * SCORE_STEP, MIN_SCORE, MAX_SCORE);
+  short add = scoreEncoder.readAndReset();
+  return constrain(score + add / 4 * SCORE_STEP, MIN_SCORE, MAX_SCORE);
 }

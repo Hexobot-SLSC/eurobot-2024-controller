@@ -6,7 +6,7 @@
 #include <nRF24L01.h>
 #include <SPI.h>
 
-Remote::Remote(): radio(7, 8) {};
+Remote::Remote(): radio(RADIO_CE, RADIO_CSN) {};
 
 void Remote::setup() {
     const byte writingAddress[6] = "912CR";

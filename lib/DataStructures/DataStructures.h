@@ -17,13 +17,11 @@ struct JoystickData {
 struct RadioData {
   JoystickData joystickData;
   
-  // short grabberHeight;
-  // short grabberOpeningAngle;
+  byte grabberHeight;
+  byte grabberOpeningAngle;
 
-  // short score;
+  byte score;
 
-  // bool areMagnetsEnabled;
-  // bool isRodDeployed;
   bool isRightPusherDeployed;
   bool isLeftPusherDeployed;
 };
