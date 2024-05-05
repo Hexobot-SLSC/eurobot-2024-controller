@@ -8,11 +8,12 @@
 
 Remote::Remote(): radio(RADIO_CE, RADIO_CSN) {};
 
-void Remote::setup() {
+bool Remote::setup() {
     const byte writingAddress[6] = "912CR";
+    bool result;
 
-    radio.begin();
-
+    result = radio.begin();
+    
     radio.setChannel(110);
     radio.setPALevel(RF24_PA_LOW);
     radio.setDataRate(RF24_2MBPS);
@@ -20,10 +21,16 @@ void Remote::setup() {
     radio.openWritingPipe(writingAddress); // address
 
     radio.stopListening();
+
+    return result;
 }
 
 void Remote::send(RadioData *dataBuffer) {
     radio.write(dataBuffer, sizeof(*dataBuffer));
+}
+
+bool Remote::hasFailure() {
+    return radio.failureDetected;
 }
 
 void Remote::print_details() {

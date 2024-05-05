@@ -18,7 +18,6 @@ byte lastScore;
 byte getNewScore();
 
 void setup() {
-
   Serial.begin(9600);
   printf_begin();
 
@@ -27,18 +26,32 @@ void setup() {
   inputs.setup();  
   debug("Inputs setup completed");
 
-  scoreDisplay.setup(score);
+  scoreDisplay.setup();
   debug("Score display setup completed");
-
-  remote.setup();
-  debug("Radio setup completed");
-
-  log("Setup completed !")
 
   #ifdef DEBUG_STATE
   debug("Radio details :")
-  remote.print_details();
+  //remote.print_details();
   #endif
+
+  bool remoteSuccess = false;
+  
+  while (!remoteSuccess) {
+    remoteSuccess = remote.setup();
+    debug(remoteSuccess)
+    if (!remoteSuccess) {
+      log("Remote setup failed, retrying in 5 seconds...");
+      for (byte i = 0; i < 5; i++) {
+        scoreDisplay.set(5 - i);
+        delay(1000);
+      }
+    }
+  }
+  debug("Radio setup completed");
+
+  log("Setup completed !")
+  
+  scoreDisplay.update(score);
 }
 
 void loop() {
@@ -51,7 +64,6 @@ void loop() {
     score = newScore;
     scoreDisplay.update(score);
   }
-
 
   inputs.fetch(&dataToSend);
 

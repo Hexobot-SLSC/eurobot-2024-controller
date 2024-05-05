@@ -10,7 +10,8 @@ class ScoreDisplay {
     public:
         ScoreDisplay();
 
-        void setup(byte score);
+        void setup();
+        void set(byte number);
         void update(byte score);
 
 };

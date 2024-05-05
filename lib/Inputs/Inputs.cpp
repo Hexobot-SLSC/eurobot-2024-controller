@@ -26,7 +26,7 @@ void Inputs::setup() {
 }
 
 void Inputs::fetch(RadioData *dataBuffer) {
-    dataBuffer->joystickData.x = 255 - map(
+    dataBuffer->joystickData.x = map(
         joystick.x(JOYSTICK_X_AXIS_ZONE_MIN, JOYSTICK_X_AXIS_ZONE_MAX),
         JOYSTICK_X_AXIS_ZONE_MIN,
         JOYSTICK_X_AXIS_ZONE_MAX,
@@ -56,6 +56,4 @@ void Inputs::fetch(RadioData *dataBuffer) {
     dataBuffer->grabberOpeningAngle = map(1024 - analogRead(GRABBER_OPENING_POTENTIOMETER), 0, 1024, 0, 255);
     dataBuffer->isRightPusherDeployed = rightPusherButton.read();
     dataBuffer->isLeftPusherDeployed = leftPusherButton.read();
-
-    debug(dataBuffer->joystickData.holonomY);
 }

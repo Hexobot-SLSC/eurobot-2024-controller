@@ -5,9 +5,13 @@
 
 ScoreDisplay::ScoreDisplay(): display(DISPLAY_CLK, DISPLAY_DIO) {};
 
-void ScoreDisplay::setup(byte score) {
+void ScoreDisplay::setup() {
     display.setBrightness(0x0f);
-    display.showNumberDec(score, false);
+    display.showNumberDec(0, true);
+}
+
+void ScoreDisplay::set(byte number) {
+    display.showNumberDec(number, true);
 }
 
 void ScoreDisplay::update(byte score) {
